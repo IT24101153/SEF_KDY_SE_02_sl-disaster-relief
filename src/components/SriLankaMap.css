@@ -1,0 +1,58 @@
+.sl-map {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.sl-map svg {
+  width: 100%;
+  max-width: 240px;
+  height: auto;
+}
+
+.sl-map-outline {
+  fill: var(--accent-bg);
+  stroke: var(--accent-border);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.sl-map-marker {
+  fill: var(--border);
+  stroke: var(--bg);
+  stroke-width: 1;
+}
+
+.sl-map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.sl-map-legend .dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+.sl-map-legend .dot.no-warning {
+  background: var(--border);
+}
+
+.sl-map-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  text-align: left;
+}

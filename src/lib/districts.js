@@ -1,0 +1,30 @@
+export const SRI_LANKA_DISTRICTS = [
+  { name: 'Colombo', lat: 6.9271, lon: 79.8612 },
+  { name: 'Gampaha', lat: 7.0917, lon: 79.9997 },
+  { name: 'Kalutara', lat: 6.5854, lon: 79.9607 },
+  { name: 'Kandy', lat: 7.2906, lon: 80.6337 },
+  { name: 'Matale', lat: 7.4675, lon: 80.6234 },
+  { name: 'Nuwara Eliya', lat: 6.9497, lon: 80.7891 },
+  { name: 'Galle', lat: 6.0535, lon: 80.221 },
+  { name: 'Matara', lat: 5.9549, lon: 80.555 },
+  { name: 'Hambantota', lat: 6.1246, lon: 81.1185 },
+  { name: 'Jaffna', lat: 9.6615, lon: 80.0255 },
+  { name: 'Kilinochchi', lat: 9.3803, lon: 80.377 },
+  { name: 'Mannar', lat: 8.981, lon: 79.9044 },
+  { name: 'Vavuniya', lat: 8.7514, lon: 80.4971 },
+  { name: 'Mullaitivu', lat: 9.267, lon: 80.8142 },
+  { name: 'Batticaloa', lat: 7.717, lon: 81.7 },
+  { name: 'Ampara', lat: 7.2975, lon: 81.6747 },
+  { name: 'Trincomalee', lat: 8.5874, lon: 81.2152 },
+  { name: 'Kurunegala', lat: 7.4867, lon: 80.3647 },
+  { name: 'Puttalam', lat: 8.0362, lon: 79.8283 },
+  { name: 'Anuradhapura', lat: 8.3114, lon: 80.4037 },
+  { name: 'Polonnaruwa', lat: 7.9403, lon: 81.0188 },
+  { name: 'Badulla', lat: 6.9934, lon: 81.055 },
+  { name: 'Monaragala', lat: 6.8726, lon: 81.351 },
+  { name: 'Ratnapura', lat: 6.6828, lon: 80.4012 },
+  { name: 'Kegalle', lat: 7.2513, lon: 80.3464 },
+]
+
+export const DISASTER_TYPES = ['flood', 'landslide', 'other']
+export const RISK_LEVELS = ['low', 'medium', 'high']

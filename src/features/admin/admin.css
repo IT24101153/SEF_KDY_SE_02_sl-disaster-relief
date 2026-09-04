@@ -1,0 +1,263 @@
+.admin-auth {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.admin-auth-form {
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  text-align: left;
+}
+
+.admin-auth-form h1 {
+  font-size: 28px;
+  margin: 0 0 8px;
+}
+
+.admin-auth-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 14px;
+  color: var(--text-h);
+}
+
+.admin-auth-form input {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font: inherit;
+  background: var(--bg);
+  color: var(--text-h);
+  transition: border-color 0.2s;
+}
+
+.admin-auth-form input:hover {
+  border-color: var(--accent-border);
+}
+
+.admin-auth-form input:disabled {
+  opacity: 0.6;
+}
+
+.admin-auth-form button[type='submit'] {
+  padding: 10px 16px;
+  border-radius: 6px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.admin-auth-form button[type='submit']:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.admin-auth-form button[type='submit']:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.form-error {
+  color: #d33;
+  font-size: 14px;
+  margin: 0;
+}
+
+.back-link {
+  align-self: center;
+  color: var(--text);
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.back-link:hover {
+  color: var(--text-h);
+  text-decoration: underline;
+}
+
+.admin-dashboard {
+  padding: 32px;
+  text-align: left;
+}
+
+.admin-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 16px;
+  margin-bottom: 24px;
+}
+
+.admin-header h1 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.admin-header button {
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-h);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.admin-header button:hover {
+  background: var(--code-bg);
+}
+
+.report-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.report-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  transition: box-shadow 0.2s;
+}
+
+.report-card:hover {
+  box-shadow: var(--shadow);
+}
+
+.report-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-h);
+  margin-bottom: 8px;
+}
+
+.badge {
+  font-size: 12px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--code-bg);
+  color: var(--text);
+  text-transform: capitalize;
+}
+
+.report-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.report-actions button {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.report-actions .approve {
+  border-color: #1a7f37;
+  color: #1a7f37;
+}
+
+.report-actions .approve:hover {
+  background: rgba(26, 127, 55, 0.12);
+}
+
+.report-actions .reject {
+  border-color: #d1242f;
+  color: #d1242f;
+}
+
+.report-actions .reject:hover {
+  background: rgba(209, 36, 47, 0.12);
+}
+
+.placeholder {
+  color: var(--text);
+  font-style: italic;
+}
+
+.panel {
+  margin-top: 40px;
+}
+
+.panel h2 {
+  margin: 0 0 16px;
+}
+
+.inline-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.inline-form select,
+.inline-form input[type='text'] {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font: inherit;
+  background: var(--bg);
+  color: var(--text-h);
+}
+
+.inline-form input[type='text'] {
+  flex: 1 1 200px;
+}
+
+.inline-form button {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.inline-form button:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.inline-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.badge.risk-high {
+  background: rgba(209, 36, 47, 0.15);
+  color: #d1242f;
+}
+
+.badge.risk-medium {
+  background: rgba(240, 136, 62, 0.18);
+  color: #b5620a;
+}
+
+.badge.risk-low {
+  background: rgba(246, 195, 67, 0.22);
+  color: #8a6d1a;
+}
+
+.badge.status-resolved {
+  background: var(--code-bg);
+  color: var(--text);
+}
