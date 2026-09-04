@@ -1,3 +1,31 @@
+.app-loading,
+.signed-in-placeholder {
+  min-height: 100svh;
+  display: grid;
+  place-content: center;
+  gap: 12px;
+  padding: 24px;
+  box-sizing: border-box;
+  color: #193f46;
+  text-align: center;
+  background: #eef5f1;
+}
+
+.signed-in-placeholder h1,
+.signed-in-placeholder p {
+  margin: 0;
+}
+
+.signed-in-placeholder h1 {
+  font-family: Georgia, serif;
+}
+
+.signed-in-placeholder .eyebrow {
+  color: #bd5e35;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
 .counter {
   font-size: 16px;
   padding: 5px 10px;
