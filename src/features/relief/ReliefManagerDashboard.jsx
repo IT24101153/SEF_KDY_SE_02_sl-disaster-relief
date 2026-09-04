@@ -35,43 +35,41 @@ function PendingCard({ db, request }) {
   }
 
   return (
-    <li className="rounded-md border-l-4 border-amber-500 bg-amber-50 p-4">
-      <div className="flex items-center justify-between">
-        <span className="font-medium text-slate-900">{request.district} — {request.needType}</span>
-        <span className="text-xs font-semibold uppercase tracking-wide text-amber-800">Pending</span>
+    <li className="list-item is-pending">
+      <div className="list-item-head">
+        <strong>{request.district}</strong>
+        <span className="badge">{request.needType}</span>
+        <span className="badge status-active">Pending</span>
       </div>
-      <p className="mt-1 text-sm text-slate-700">{request.description}</p>
-      <p className="mt-1 text-xs text-slate-600">{request.peopleCount} people affected</p>
+      <p className="list-item-body">{request.description}</p>
+      <p className="list-item-meta">{request.peopleCount} people affected</p>
 
-      <div className="mt-3 flex flex-wrap items-end gap-3">
-        <div>
-          <label className="block text-xs font-medium text-slate-700">Assign team</label>
+      <div className="list-item-actions">
+        <div className="field">
+          <label htmlFor={`team-${request.id}`}>Assign team</label>
           <select
+            id={`team-${request.id}`}
             value={assignedTeam}
             onChange={(e) => setAssignedTeam(e.target.value)}
-            className="mt-1 rounded-md border border-slate-300 px-2 py-1.5 text-sm"
           >
             {TEAMS.map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
         </div>
-        <div>
-          <label className="block text-xs font-medium text-slate-700">Scheduled time</label>
+        <div className="field">
+          <label htmlFor={`time-${request.id}`}>Scheduled time</label>
           <input
+            id={`time-${request.id}`}
             type="datetime-local"
             value={scheduledTime}
             onChange={(e) => setScheduledTime(e.target.value)}
-            className="mt-1 rounded-md border border-slate-300 px-2 py-1.5 text-sm"
+            className={error ? "invalid" : ""}
           />
         </div>
-        <button
-          onClick={handleConfirm}
-          disabled={saving}
-          className="rounded-md bg-orange-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-orange-700 disabled:opacity-60"
-        >
+        <button type="button" className="btn btn-primary" onClick={handleConfirm} disabled={saving}>
           {saving ? "Confirming..." : "Confirm"}
         </button>
       </div>
-      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+      {error && <span className="field-error">{error}</span>}
     </li>
   );
 }
@@ -91,19 +89,18 @@ function ScheduledCard({ db, request }) {
   }
 
   return (
-    <li className="rounded-md border-l-4 border-blue-500 bg-blue-50 p-4">
-      <div className="flex items-center justify-between">
-        <span className="font-medium text-slate-900">{request.district} — {request.needType}</span>
-        <span className="text-xs font-semibold uppercase tracking-wide text-blue-800">Scheduled</span>
+    <li className="list-item is-scheduled">
+      <div className="list-item-head">
+        <strong>{request.district}</strong>
+        <span className="badge">{request.needType}</span>
+        <span className="badge status-resolved">Scheduled</span>
       </div>
-      <p className="mt-1 text-sm text-slate-700">Team: {request.assignedTeam}</p>
-      <button
-        onClick={handleComplete}
-        disabled={saving}
-        className="mt-3 rounded-md bg-teal-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-teal-800 disabled:opacity-60"
-      >
-        {saving ? "Saving..." : "Mark completed"}
-      </button>
+      <p className="list-item-body">Team: {request.assignedTeam}</p>
+      <div className="list-item-actions">
+        <button type="button" className="btn btn-success btn-sm" onClick={handleComplete} disabled={saving}>
+          {saving ? "Saving..." : "Mark completed"}
+        </button>
+      </div>
     </li>
   );
 }
@@ -126,30 +123,53 @@ export default function ReliefManagerDashboard({ db }) {
   }, [db]);
 
   return (
-    <div className="max-w-3xl space-y-8">
-      <div>
-        <h2 className="text-xl font-semibold text-slate-900">Pending relief requests</h2>
+    <div className="stack">
+      <div className="stat-grid">
+        <div className="stat-card">
+          <span className="stat-value">{pending.length}</span>
+          <span className="stat-label">Pending requests</span>
+        </div>
+        <div className="stat-card">
+          <span className="stat-value">{scheduled.length}</span>
+          <span className="stat-label">Scheduled for delivery</span>
+        </div>
+      </div>
+
+      <section className="card">
+        <div className="card-head">
+          <h2>Pending relief requests</h2>
+          <p>Assign a team and a time to confirm each request.</p>
+        </div>
         {loading ? (
-          <p className="mt-2 text-sm text-slate-500">Loading...</p>
+          <p className="placeholder">Loading…</p>
         ) : pending.length === 0 ? (
-          <p className="mt-2 text-sm text-slate-600">No pending requests right now.</p>
+          <div className="empty-state">
+            <strong>No pending requests</strong>
+            <span>New requests from residents will appear here.</span>
+          </div>
         ) : (
-          <ul className="mt-3 space-y-3">
+          <ul className="list">
             {pending.map((r) => <PendingCard key={r.id} db={db} request={r} />)}
           </ul>
         )}
-      </div>
+      </section>
 
-      <div>
-        <h2 className="text-xl font-semibold text-slate-900">Scheduled — awaiting delivery</h2>
+      <section className="card">
+        <div className="card-head">
+          <h2>Scheduled — awaiting delivery</h2>
+          <p>Mark each one completed once relief has been delivered.</p>
+        </div>
         {scheduled.length === 0 ? (
-          <p className="mt-2 text-sm text-slate-600">Nothing currently scheduled.</p>
+          <div className="empty-state">
+            <strong>Nothing currently scheduled</strong>
+            <span>Confirmed requests will appear here.</span>
+          </div>
         ) : (
-          <ul className="mt-3 space-y-3">
+          <ul className="list">
             {scheduled.map((r) => <ScheduledCard key={r.id} db={db} request={r} />)}
           </ul>
         )}
-      </div>
+      </section>
     </div>
   );
 }

@@ -79,3 +79,15 @@
   border-radius: 8px;
   text-align: center;
 }
+
+.landing-link {
+  display: inline-block;
+  margin-top: 16px;
+  color: var(--accent);
+  font-size: 15px;
+  text-decoration: none;
+}
+
+.landing-link:hover {
+  text-decoration: underline;
+}

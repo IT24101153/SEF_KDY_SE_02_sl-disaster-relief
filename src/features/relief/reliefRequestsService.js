@@ -9,12 +9,31 @@ import {
   doc,
   query,
   where,
-  orderBy,
   onSnapshot,
   serverTimestamp,
 } from "firebase/firestore";
+import { RELIEF_REQUESTS } from "../../lib/collections";
 
-const RELIEF_REQUESTS = "reliefRequests";
+// Ordering happens in memory: Firestore refuses a `where` + `orderBy` pair on
+// different fields until a composite index exists, which would break these
+// listeners at runtime.
+function millis(value) {
+  if (!value) return 0;
+  if (typeof value.toMillis === "function") return value.toMillis();
+  return new Date(value).getTime() || 0;
+}
+
+function subscribeSorted(q, callback, field, direction = "desc") {
+  return onSnapshot(q, (snapshot) => {
+    const docs = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+    docs.sort((a, b) =>
+      direction === "desc"
+        ? millis(b[field]) - millis(a[field])
+        : millis(a[field]) - millis(b[field]),
+    );
+    callback(docs);
+  });
+}
 
 /**
  * Create a new relief request. Called from ReliefRequestForm.
@@ -44,12 +63,9 @@ export async function submitReliefRequest(db, data, userId) {
 export function subscribeToMyRequests(db, userId, callback) {
   const q = query(
     collection(db, RELIEF_REQUESTS),
-    where("requestedBy", "==", userId),
-    orderBy("createdAt", "desc")
+    where("requestedBy", "==", userId)
   );
-  return onSnapshot(q, (snapshot) => {
-    callback(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
-  });
+  return subscribeSorted(q, callback, "createdAt", "desc");
 }
 
 /**
@@ -59,12 +75,9 @@ export function subscribeToMyRequests(db, userId, callback) {
 export function subscribeToPendingRequests(db, callback) {
   const q = query(
     collection(db, RELIEF_REQUESTS),
-    where("status", "==", "pending"),
-    orderBy("createdAt", "asc")
+    where("status", "==", "pending")
   );
-  return onSnapshot(q, (snapshot) => {
-    callback(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
-  });
+  return subscribeSorted(q, callback, "createdAt", "asc");
 }
 
 /**
@@ -73,12 +86,9 @@ export function subscribeToPendingRequests(db, callback) {
 export function subscribeToScheduledRequests(db, callback) {
   const q = query(
     collection(db, RELIEF_REQUESTS),
-    where("status", "==", "scheduled"),
-    orderBy("scheduledTime", "asc")
+    where("status", "==", "scheduled")
   );
-  return onSnapshot(q, (snapshot) => {
-    callback(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
-  });
+  return subscribeSorted(q, callback, "scheduledTime", "asc");
 }
 
 /**

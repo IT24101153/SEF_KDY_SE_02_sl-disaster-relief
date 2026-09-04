@@ -8,11 +8,13 @@ import {
   updateDoc,
 } from 'firebase/firestore'
 import { db } from '../../firebase.js'
+import { DISASTER_AREAS } from '../../lib/collections.js'
 import {
   DISASTER_TYPES,
   RISK_LEVELS,
   SRI_LANKA_DISTRICTS,
 } from '../../lib/districts.js'
+import { seedDisasterAreas } from '../../lib/seedData.js'
 import { WarningIcon } from './icons.jsx'
 
 const emptyForm = {
@@ -37,6 +39,25 @@ function DisasterWarnings({ warnings }) {
   const [form, setForm] = useState(emptyForm)
   const [touched, setTouched] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [seeding, setSeeding] = useState(false)
+  const [seedNotice, setSeedNotice] = useState('')
+
+  async function handleSeed() {
+    setSeeding(true)
+    setSeedNotice('')
+    try {
+      const { seeded, skipped } = await seedDisasterAreas()
+      setSeedNotice(
+        skipped
+          ? 'Sample data skipped — disaster areas already exist.'
+          : `Added ${seeded} sample disaster areas.`,
+      )
+    } catch {
+      setSeedNotice('Could not add sample data. Please try again.')
+    } finally {
+      setSeeding(false)
+    }
+  }
 
   const errors = validate(form)
   const showError = touched && errors.description
@@ -52,7 +73,7 @@ function DisasterWarnings({ warnings }) {
 
     setSaving(true)
     try {
-      await addDoc(collection(db, 'disasterAreas'), {
+      await addDoc(collection(db, DISASTER_AREAS), {
         ...form,
         description: form.description.trim(),
         status: 'active',
@@ -67,13 +88,13 @@ function DisasterWarnings({ warnings }) {
   }
 
   async function toggleStatus(warning) {
-    await updateDoc(doc(db, 'disasterAreas', warning.id), {
+    await updateDoc(doc(db, DISASTER_AREAS, warning.id), {
       status: warning.status === 'active' ? 'resolved' : 'active',
     })
   }
 
   async function handleDelete(id) {
-    await deleteDoc(doc(db, 'disasterAreas', id))
+    await deleteDoc(doc(db, DISASTER_AREAS, id))
   }
 
   return (
@@ -156,10 +177,22 @@ function DisasterWarnings({ warnings }) {
       </section>
 
       <section className="card">
-        <div className="card-head">
-          <h2>All warnings</h2>
-          <p>{warnings.length} total</p>
+        <div className="card-head card-head-row">
+          <div>
+            <h2>All warnings</h2>
+            <p>{warnings.length} total</p>
+          </div>
+          <button
+            type="button"
+            className="btn btn-sm btn-ghost"
+            onClick={handleSeed}
+            disabled={seeding}
+          >
+            {seeding ? 'Adding…' : 'Seed Sample Data'}
+          </button>
         </div>
+
+        {seedNotice && <p className="seed-notice">{seedNotice}</p>}
 
         {warnings.length === 0 ? (
           <div className="empty-state">

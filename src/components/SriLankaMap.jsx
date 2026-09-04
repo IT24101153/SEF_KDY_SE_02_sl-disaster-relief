@@ -43,10 +43,11 @@ const OUTLINE_PATH =
     return `${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`
   }).join(' ') + ' Z'
 
+// Risk reads as intensity of red, dropping to neutral ink at the low end.
 const RISK_COLOR = {
-  high: '#d1242f',
-  medium: '#f0883e',
-  low: '#f6c343',
+  high: '#d81f2a',
+  medium: '#e8737b',
+  low: '#4a4a52',
 }
 
 function SriLankaMap() {

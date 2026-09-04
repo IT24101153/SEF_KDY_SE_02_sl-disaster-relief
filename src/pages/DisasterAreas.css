@@ -1,0 +1,183 @@
+.areas-page {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+  text-align: left;
+}
+
+.areas-head h1 {
+  font-size: 32px;
+  margin: 0 0 8px;
+}
+
+.areas-head p {
+  color: var(--text);
+  max-width: 60ch;
+}
+
+.areas-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+  margin: 28px 0 16px;
+}
+
+.areas-filters .areas-search {
+  grid-column: 1 / -1;
+}
+
+.areas-filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.areas-filters span {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-h);
+}
+
+.areas-filters input,
+.areas-filters select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-h);
+  font: inherit;
+  font-size: 15px;
+}
+
+.areas-filters input:focus,
+.areas-filters select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.areas-count {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--text);
+  margin-bottom: 16px;
+}
+
+.areas-count button {
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-h);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.areas-count button:hover {
+  background: var(--surface-3);
+}
+
+.areas-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.area-card {
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.area-card.risk-high {
+  border-left-color: var(--accent);
+}
+
+.area-card.risk-medium {
+  border-left-color: var(--accent-border);
+}
+
+.area-card.risk-low {
+  border-left-color: var(--ink);
+}
+
+.area-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.area-card-head strong {
+  font-size: 17px;
+  color: var(--text-h);
+}
+
+.area-card p {
+  color: var(--text);
+  font-size: 15px;
+}
+
+.area-tag {
+  font-size: 12px;
+  line-height: 1;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--surface-3);
+  color: var(--text);
+  text-transform: capitalize;
+}
+
+.area-tag.risk.risk-high {
+  background: var(--accent);
+  color: #fff;
+}
+
+.area-tag.risk.risk-medium {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.area-tag.risk.risk-low {
+  background: var(--surface-3);
+  color: var(--text-h);
+}
+
+.area-tag.status-active {
+  background: var(--success-bg);
+  color: var(--text-h);
+}
+
+.areas-empty {
+  padding: 40px 24px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  text-align: center;
+  color: var(--text);
+}
+
+@media (max-width: 640px) {
+  .areas-page {
+    padding: 24px 16px 48px;
+  }
+
+  .areas-head h1 {
+    font-size: 26px;
+  }
+
+  .areas-filters {
+    grid-template-columns: 1fr;
+  }
+}

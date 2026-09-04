@@ -11,6 +11,8 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { db } from "../../firebase";
+import { NEWS } from "../../lib/collections";
+import { seedNews } from "../../lib/seedData";
 import "./news.css";
 
 const emptyForm = { title: "", content: "", category: "news" };
@@ -22,9 +24,28 @@ export default function NewsManagerDashboard({ currentUser }) {
   const [errors, setErrors] = useState({});
   const [editingId, setEditingId] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [seeding, setSeeding] = useState(false);
+  const [seedNotice, setSeedNotice] = useState("");
+
+  async function handleSeed() {
+    setSeeding(true);
+    setSeedNotice("");
+    try {
+      const { seeded, skipped } = await seedNews(currentUser?.uid);
+      setSeedNotice(
+        skipped
+          ? "Sample news skipped — posts already exist."
+          : `Added ${seeded} sample posts.`,
+      );
+    } catch {
+      setSeedNotice("Could not add sample news. Please try again.");
+    } finally {
+      setSeeding(false);
+    }
+  }
 
   useEffect(() => {
-    const q = query(collection(db, "news"), orderBy("createdAt", "desc"));
+    const q = query(collection(db, NEWS), orderBy("createdAt", "desc"));
     const unsub = onSnapshot(q, (snap) => {
       setItems(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
       setLoading(false);
@@ -61,13 +82,13 @@ export default function NewsManagerDashboard({ currentUser }) {
     setSubmitting(true);
     try {
       if (editingId) {
-        await updateDoc(doc(db, "news", editingId), {
+        await updateDoc(doc(db, NEWS, editingId), {
           title: form.title.trim(),
           content: form.content.trim(),
           category: form.category,
         });
       } else {
-        await addDoc(collection(db, "news"), {
+        await addDoc(collection(db, NEWS), {
           title: form.title.trim(),
           content: form.content.trim(),
           category: form.category,
@@ -87,7 +108,7 @@ export default function NewsManagerDashboard({ currentUser }) {
   async function handleDelete(id) {
     if (!window.confirm("Remove this post? This can't be undone.")) return;
     try {
-      await deleteDoc(doc(db, "news", id));
+      await deleteDoc(doc(db, NEWS, id));
     } catch (err) {
       console.error("Failed to delete news item:", err);
     }
@@ -139,7 +160,7 @@ export default function NewsManagerDashboard({ currentUser }) {
 
         {errors.submit && <div className="field-error">{errors.submit}</div>}
 
-        <div style={{ display: "flex", gap: "0.6rem" }}>
+        <div className="form-actions" style={{ justifyContent: "flex-start", gap: "0.6rem" }}>
           <button className="btn-primary" type="submit" disabled={submitting}>
             {submitting ? "Saving…" : editingId ? "Save changes" : "Publish post"}
           </button>
@@ -151,9 +172,14 @@ export default function NewsManagerDashboard({ currentUser }) {
         </div>
       </form>
 
-      <h2 style={{ fontFamily: "Georgia, serif", fontSize: "1.1rem", margin: "0 0 0.75rem" }}>
-        Published posts
-      </h2>
+      <div className="card-head card-head-row">
+        <h2>Published posts</h2>
+        <button type="button" className="btn-ghost" onClick={handleSeed} disabled={seeding}>
+          {seeding ? "Adding…" : "Seed Sample News"}
+        </button>
+      </div>
+
+      {seedNotice && <p className="news-subheading">{seedNotice}</p>}
 
       {loading && <div className="news-empty">Loading…</div>}
       {!loading && items.length === 0 && <div className="news-empty">Nothing posted yet.</div>}

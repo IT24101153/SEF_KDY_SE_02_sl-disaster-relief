@@ -6,16 +6,17 @@ import {
 } from 'firebase/auth'
 import { doc, serverTimestamp, setDoc } from 'firebase/firestore'
 import { auth, db } from '../../firebase'
+import { ROLES, USERS } from '../../lib/collections'
 
 export async function registerUser({ name, email, password }) {
   const credentials = await createUserWithEmailAndPassword(auth, email, password)
 
   await updateProfile(credentials.user, { displayName: name })
-  await setDoc(doc(db, 'Users', credentials.user.uid), {
+  await setDoc(doc(db, USERS, credentials.user.uid), {
     id: credentials.user.uid,
     name,
     email,
-    role: 'user',
+    role: ROLES.USER,
     createdAt: serverTimestamp(),
   })
 

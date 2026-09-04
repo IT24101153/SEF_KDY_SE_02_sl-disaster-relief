@@ -1,55 +1,60 @@
 import {
   addDoc,
   collection,
-  getDocs,
+  onSnapshot,
   query,
   serverTimestamp,
   where,
 } from 'firebase/firestore'
 import { db } from '../../firebase'
+import { REPORTS, RELIEF_REQUESTS } from '../../lib/collections'
 
 export async function createDisasterReport(userId, report) {
-  return addDoc(collection(db, 'Reports'), {
+  return addDoc(collection(db, REPORTS), {
     reportedBy: userId,
     district: report.district,
     type: report.type,
-    severity: report.severity,
-    description: report.description,
+    // The form labels this "severity"; the shared data model calls it riskLevel,
+    // and the Disaster Admin copies it onto the disasterAreas doc on approval.
+    riskLevel: report.severity,
+    description: report.description.trim(),
     status: 'pending',
+    reviewedBy: null,
     createdAt: serverTimestamp(),
   })
 }
 
 export async function createReliefRequest(userId, request) {
-  return addDoc(collection(db, 'ReliefRequests'), {
+  return addDoc(collection(db, RELIEF_REQUESTS), {
     requestedBy: userId,
     district: request.district,
     needType: request.needType,
     peopleCount: Number(request.peopleCount),
-    description: request.description,
+    description: request.description.trim(),
     status: 'pending',
-    assignedTeam: '',
-    scheduledTime: '',
+    assignedTeam: null,
+    scheduledTime: null,
     createdAt: serverTimestamp(),
   })
 }
 
-function sortNewestFirst(documents) {
-  return documents
-    .map((item) => ({ id: item.id, ...item.data() }))
-    .sort((first, second) => {
-      const firstTime = first.createdAt?.toMillis?.() || 0
-      const secondTime = second.createdAt?.toMillis?.() || 0
-      return secondTime - firstTime
-    })
+// Sorted in memory rather than with orderBy so that pairing it with `where`
+// never requires a composite Firestore index.
+function subscribeNewestFirst(collectionName, field, userId, callback) {
+  const target = query(collection(db, collectionName), where(field, '==', userId))
+  return onSnapshot(target, (snapshot) => {
+    const docs = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }))
+    docs.sort(
+      (a, b) => (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0),
+    )
+    callback(docs)
+  })
 }
 
-export async function getUserReports(userId) {
-  const snapshot = await getDocs(query(collection(db, 'Reports'), where('reportedBy', '==', userId)))
-  return sortNewestFirst(snapshot.docs)
+export function subscribeToUserReports(userId, callback) {
+  return subscribeNewestFirst(REPORTS, 'reportedBy', userId, callback)
 }
 
-export async function getUserReliefRequests(userId) {
-  const snapshot = await getDocs(query(collection(db, 'ReliefRequests'), where('requestedBy', '==', userId)))
-  return sortNewestFirst(snapshot.docs)
+export function subscribeToUserReliefRequests(userId, callback) {
+  return subscribeNewestFirst(RELIEF_REQUESTS, 'requestedBy', userId, callback)
 }

@@ -6,6 +6,7 @@
 import { useEffect, useState } from "react";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { db } from "../../firebase";
+import { NEWS } from "../../lib/collections";
 import "./news.css";
 
 function formatDate(timestamp) {
@@ -37,7 +38,7 @@ export default function NewsFeed() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const q = query(collection(db, "news"), orderBy("createdAt", "desc"));
+    const q = query(collection(db, NEWS), orderBy("createdAt", "desc"));
     const unsub = onSnapshot(
       q,
       (snap) => {

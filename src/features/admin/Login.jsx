@@ -1,14 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-<<<<<<< Updated upstream
-import { signInWithEmailAndPassword } from 'firebase/auth'
+import { onAuthStateChanged, signInWithEmailAndPassword } from 'firebase/auth'
 import { doc, getDoc } from 'firebase/firestore'
 import { auth, db } from '../../firebase.js'
-=======
-import { onAuthStateChanged, signInWithEmailAndPassword } from 'firebase/auth'
-import { auth } from '../../firebase.js'
+import { HOME_BY_ROLE, USERS } from '../../lib/collections.js'
 import { CheckIcon, ShieldIcon } from './icons.jsx'
->>>>>>> Stashed changes
 import './admin.css'
 
 const ERROR_MESSAGES = {
@@ -43,19 +39,26 @@ function validate({ email, password }) {
   return errors
 }
 
+async function homeForUser(uid) {
+  const profile = await getDoc(doc(db, USERS, uid))
+  return HOME_BY_ROLE[profile.data()?.role] ?? '/'
+}
+
 function AdminLogin() {
   const [values, setValues] = useState({ email: '', password: '' })
   const [touched, setTouched] = useState({})
   const [formError, setFormError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [checkingSession, setCheckingSession] = useState(true)
   const navigate = useNavigate()
 
-<<<<<<< Updated upstream
-=======
   useEffect(() => {
-    return onAuthStateChanged(auth, (user) => {
-      setCheckingSession(false)
-      if (user) navigate('/admin', { replace: true })
+    return onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        setCheckingSession(false)
+        return
+      }
+      navigate(await homeForUser(user.uid), { replace: true })
     })
   }, [navigate])
 
@@ -67,7 +70,6 @@ function AdminLogin() {
     setFormError('')
   }
 
->>>>>>> Stashed changes
   async function handleSubmit(e) {
     e.preventDefault()
     setTouched({ email: true, password: true })
@@ -77,18 +79,12 @@ function AdminLogin() {
 
     setLoading(true)
     try {
-<<<<<<< Updated upstream
-      const credentials = await signInWithEmailAndPassword(auth, email, password)
-      const profile = await getDoc(doc(db, 'Users', credentials.user.uid))
-      navigate(profile.data()?.role === 'relief_manager' ? '/relief-manager' : '/admin')
-=======
-      await signInWithEmailAndPassword(
+      const credentials = await signInWithEmailAndPassword(
         auth,
         values.email.trim(),
         values.password,
       )
-      navigate('/admin', { replace: true })
->>>>>>> Stashed changes
+      navigate(await homeForUser(credentials.user.uid), { replace: true })
     } catch (err) {
       setFormError(
         ERROR_MESSAGES[err.code] ?? 'Something went wrong. Please try again.',
@@ -98,13 +94,10 @@ function AdminLogin() {
     }
   }
 
-<<<<<<< Updated upstream
-=======
   if (checkingSession) {
     return <p className="route-loading">Checking session…</p>
   }
 
->>>>>>> Stashed changes
   return (
     <div className="auth-layout">
       <aside className="auth-brand">

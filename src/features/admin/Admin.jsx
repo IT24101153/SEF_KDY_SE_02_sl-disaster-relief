@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { onAuthStateChanged, signOut } from 'firebase/auth'
-import { doc, updateDoc } from 'firebase/firestore'
+import { addDoc, collection, doc, serverTimestamp, updateDoc } from 'firebase/firestore'
 import { auth, db } from '../../firebase.js'
+import { DISASTER_AREAS, REPORTS } from '../../lib/collections.js'
 import { useCollectionData } from '../../lib/useCollectionData.js'
 import PendingReports from './PendingReports.jsx'
 import DisasterWarnings from './DisasterWarnings.jsx'
@@ -61,18 +62,32 @@ function AdminDashboard() {
 function Dashboard({ user, onLogout }) {
   const [activeView, setActiveView] = useState('reports')
   const { data: reports, loading: reportsLoading } = useCollectionData(
-    'reports',
+    REPORTS,
     'status',
     'pending',
   )
-  const { data: warnings } = useCollectionData('disasterAreas')
+  const { data: warnings } = useCollectionData(DISASTER_AREAS)
   const { data: forecasts } = useCollectionData('weatherForecasts')
 
   const activeWarnings = warnings.filter((w) => w.status === 'active')
   const view = VIEWS.find((v) => v.id === activeView)
 
-  async function handleReview(reportId, status) {
-    await updateDoc(doc(db, 'reports', reportId), {
+  // Approving publishes the report as a public disaster area *and* marks the
+  // report reviewed. Rejecting only marks the report — nothing goes public.
+  async function handleReview(report, status) {
+    if (status === 'approved') {
+      await addDoc(collection(db, DISASTER_AREAS), {
+        district: report.district,
+        type: report.type,
+        riskLevel: report.riskLevel ?? 'medium',
+        description: report.description,
+        status: 'active',
+        source: `report:${report.id}`,
+        createdAt: serverTimestamp(),
+      })
+    }
+
+    await updateDoc(doc(db, REPORTS, report.id), {
       status,
       reviewedBy: user.uid,
     })

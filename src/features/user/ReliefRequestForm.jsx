@@ -62,94 +62,88 @@ export default function ReliefRequestForm({ db, currentUser, onSubmitted }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-lg space-y-5">
-      <div>
-        <h2 className="text-xl font-semibold text-slate-900">Request relief</h2>
-        <p className="mt-1 text-sm text-slate-600">
-          Tell us where help is needed. A relief coordinator will confirm a team and time.
-        </p>
+    <section className="card">
+      <div className="card-head">
+        <h2>Request relief</h2>
+        <p>Tell us where help is needed. A relief coordinator will confirm a team and time.</p>
       </div>
 
-      <div>
-        <label htmlFor="district" className="block text-sm font-medium text-slate-800">
-          District
-        </label>
-        <select
-          id="district"
-          value={form.district}
-          onChange={(e) => handleChange("district", e.target.value)}
-          className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-slate-900 focus:border-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-200"
-        >
-          <option value="">Select district</option>
-          {DISTRICTS.map((d) => (
-            <option key={d} value={d}>{d}</option>
-          ))}
-        </select>
-        {errors.district && <p className="mt-1 text-sm text-red-600">{errors.district}</p>}
-      </div>
+      <form className="form-grid" onSubmit={handleSubmit} noValidate>
+        <div className="field">
+          <label htmlFor="district">District</label>
+          <select
+            id="district"
+            value={form.district}
+            onChange={(e) => handleChange("district", e.target.value)}
+            className={errors.district ? "invalid" : ""}
+          >
+            <option value="">Select district</option>
+            {DISTRICTS.map((d) => (
+              <option key={d} value={d}>{d}</option>
+            ))}
+          </select>
+          {errors.district && <span className="field-error">{errors.district}</span>}
+        </div>
 
-      <div>
-        <label htmlFor="needType" className="block text-sm font-medium text-slate-800">
-          Type of help needed
-        </label>
-        <select
-          id="needType"
-          value={form.needType}
-          onChange={(e) => handleChange("needType", e.target.value)}
-          className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-slate-900 focus:border-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-200"
-        >
-          <option value="">Select need type</option>
-          {NEED_TYPES.map((n) => (
-            <option key={n.value} value={n.value}>{n.label}</option>
-          ))}
-        </select>
-        {errors.needType && <p className="mt-1 text-sm text-red-600">{errors.needType}</p>}
-      </div>
+        <div className="field">
+          <label htmlFor="needType">Type of help needed</label>
+          <select
+            id="needType"
+            value={form.needType}
+            onChange={(e) => handleChange("needType", e.target.value)}
+            className={errors.needType ? "invalid" : ""}
+          >
+            <option value="">Select need type</option>
+            {NEED_TYPES.map((n) => (
+              <option key={n.value} value={n.value}>{n.label}</option>
+            ))}
+          </select>
+          {errors.needType && <span className="field-error">{errors.needType}</span>}
+        </div>
 
-      <div>
-        <label htmlFor="peopleCount" className="block text-sm font-medium text-slate-800">
-          Number of people affected
-        </label>
-        <input
-          id="peopleCount"
-          type="number"
-          min="1"
-          value={form.peopleCount}
-          onChange={(e) => handleChange("peopleCount", e.target.value)}
-          className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-slate-900 focus:border-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-200"
-        />
-        {errors.peopleCount && <p className="mt-1 text-sm text-red-600">{errors.peopleCount}</p>}
-      </div>
+        <div className="field">
+          <label htmlFor="peopleCount">Number of people affected</label>
+          <input
+            id="peopleCount"
+            type="number"
+            min="1"
+            value={form.peopleCount}
+            onChange={(e) => handleChange("peopleCount", e.target.value)}
+            className={errors.peopleCount ? "invalid" : ""}
+          />
+          {errors.peopleCount && <span className="field-error">{errors.peopleCount}</span>}
+        </div>
 
-      <div>
-        <label htmlFor="description" className="block text-sm font-medium text-slate-800">
-          Description
-        </label>
-        <textarea
-          id="description"
-          rows={4}
-          value={form.description}
-          onChange={(e) => handleChange("description", e.target.value)}
-          placeholder="e.g. Water has entered 6 houses on Lake Road, families are on the second floor."
-          className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-slate-900 focus:border-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-200"
-        />
-        {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
-      </div>
+        <div className="field field-wide">
+          <label htmlFor="description">Description</label>
+          <textarea
+            id="description"
+            rows={4}
+            value={form.description}
+            onChange={(e) => handleChange("description", e.target.value)}
+            placeholder="e.g. Water has entered 6 houses on Lake Road, families are on the second floor."
+            className={errors.description ? "invalid" : ""}
+          />
+          {errors.description && <span className="field-error">{errors.description}</span>}
+        </div>
 
-      <button
-        type="submit"
-        disabled={status === "submitting"}
-        className="w-full rounded-md bg-orange-600 px-4 py-2.5 font-medium text-white hover:bg-orange-700 disabled:opacity-60"
-      >
-        {status === "submitting" ? "Submitting..." : "Submit request"}
-      </button>
+        <div className="form-actions">
+          <button type="submit" className="btn btn-primary" disabled={status === "submitting"}>
+            {status === "submitting" ? "Submitting..." : "Submit request"}
+          </button>
+        </div>
 
-      {status === "success" && (
-        <p className="text-sm text-teal-700">Request sent. You can track it under "My Relief Requests".</p>
-      )}
-      {status === "error" && (
-        <p className="text-sm text-red-600">Something went wrong sending your request. Try again.</p>
-      )}
-    </form>
+        {status === "success" && (
+          <p className="field-wide form-message success">
+            Request sent. You can track it under "My Relief Requests".
+          </p>
+        )}
+        {status === "error" && (
+          <p className="field-wide form-message error">
+            Something went wrong sending your request. Try again.
+          </p>
+        )}
+      </form>
+    </section>
   );
 }

@@ -28,14 +28,14 @@ function PendingReports({ reports, loading, onReview }) {
                 <button
                   type="button"
                   className="btn btn-sm btn-success"
-                  onClick={() => onReview(report.id, 'approved')}
+                  onClick={() => onReview(report, 'approved')}
                 >
                   Approve
                 </button>
                 <button
                   type="button"
                   className="btn btn-sm btn-danger"
-                  onClick={() => onReview(report.id, 'rejected')}
+                  onClick={() => onReview(report, 'rejected')}
                 >
                   Reject
                 </button>

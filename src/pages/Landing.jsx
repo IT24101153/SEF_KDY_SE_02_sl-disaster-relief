@@ -7,13 +7,6 @@ const SriLankaMap = lazy(() => import('../components/SriLankaMap.jsx'))
 function Landing() {
   return (
     <div className="landing">
-      <header className="landing-nav">
-        <div className="brand">Sri Lanka Disaster &amp; Relief Connect</div>
-        <nav>
-          <Link to="/admin/login">Admin Login</Link>
-        </nav>
-      </header>
-
       <section className="hero-section">
         <h1>Report. Verify. Respond.</h1>
         <p>
@@ -49,11 +42,20 @@ function Landing() {
         <Suspense fallback={<p className="placeholder">Loading map…</p>}>
           <SriLankaMap />
         </Suspense>
+        <Link to="/disaster-areas" className="landing-link">
+          Browse all disaster areas →
+        </Link>
       </section>
 
       <section className="news-section">
         <h2>News &amp; Alerts</h2>
-        <p className="placeholder">No news posted yet.</p>
+        <p>
+          Verified updates on flooding, landslides and relief efforts across
+          the country.
+        </p>
+        <Link to="/news" className="landing-link">
+          Read the news feed →
+        </Link>
       </section>
     </div>
   )
