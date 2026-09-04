@@ -3,6 +3,8 @@ import { Navigate, Routes, Route } from 'react-router-dom'
 import { onAuthStateChanged } from 'firebase/auth'
 import Landing from './pages/Landing.jsx'
 import { auth } from './firebase.js'
+import AuthPage from './features/user/AuthPage'
+import UserDashboard from './features/user/UserDashboard'
 
 const AdminLogin = lazy(() => import('./features/admin/Login.jsx'))
 const AdminDashboard = lazy(() => import('./features/admin/Admin.jsx'))
@@ -24,6 +26,10 @@ function NewsManagerRoute() {
 }
 
 function App() {
+  const [user, setUser] = useState(undefined)
+
+  useEffect(() => onAuthStateChanged(auth, setUser), [])
+
   return (
     <Suspense fallback={<p style={{ padding: 48 }}>Loading…</p>}>
       <Routes>
@@ -31,6 +37,7 @@ function App() {
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/news-manager" element={<NewsManagerRoute />} />
+        <Route path="/user" element={user === undefined ? <div className="app-loading">Loading your account...</div> : user ? <UserDashboard user={user} /> : <AuthPage onAuthenticated={setUser} />} />
       </Routes>
     </Suspense>
   )
