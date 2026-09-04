@@ -15,6 +15,14 @@ const ERROR_MESSAGES = {
     'Network error — check your connection and try again.',
 }
 
+const NEWS_MANAGER_EMAIL = 'news@manager.com'
+
+function dashboardPath(user) {
+  return user?.email?.toLowerCase() === NEWS_MANAGER_EMAIL
+    ? '/news-manager'
+    : '/admin'
+}
+
 function AdminLogin() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -26,7 +34,7 @@ function AdminLogin() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCheckingSession(false)
-      if (user) navigate('/admin', { replace: true })
+      if (user) navigate(dashboardPath(user), { replace: true })
     })
     return unsubscribe
   }, [navigate])
@@ -42,8 +50,8 @@ function AdminLogin() {
 
     setLoading(true)
     try {
-      await signInWithEmailAndPassword(auth, email, password)
-      navigate('/admin')
+      const credentials = await signInWithEmailAndPassword(auth, email, password)
+      navigate(dashboardPath(credentials.user))
     } catch (err) {
       setError(
         ERROR_MESSAGES[err.code] ?? 'Something went wrong. Please try again.',
