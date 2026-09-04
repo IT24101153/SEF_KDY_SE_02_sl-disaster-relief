@@ -3,12 +3,22 @@ import { logoutUser } from './authService'
 import {
   createDisasterReport,
   createReliefRequest,
+  deleteReliefRequest,
   subscribeToUserReliefRequests,
   subscribeToUserReports,
+  updateReliefRequest,
 } from './userService'
 import './user.css'
 
 const districts = ['Colombo', 'Gampaha', 'Kalutara', 'Kegalle', 'Nuwara Eliya', 'Badulla', 'Ratnapura']
+// Shared by the create form and the inline edit form so the two cannot drift.
+const NEED_TYPES = [
+  { value: 'food', label: 'Food and water' },
+  { value: 'medicine', label: 'Medicine' },
+  { value: 'shelter', label: 'Shelter' },
+  { value: 'rescue', label: 'Rescue support' },
+  { value: 'other', label: 'Other' },
+]
 const emptyReport = { district: '', type: 'flood', severity: 'medium', description: '' }
 const emptyRelief = { district: '', needType: 'food', peopleCount: '', description: '' }
 
@@ -60,7 +70,38 @@ function StatusBadge({ status }) {
   return <span className={`status-badge ${status}`}>{status}</span>
 }
 
-function SubmissionList({ items, kind }) {
+function SubmissionList({ items, kind, onDelete, deletingId, onEdit, savingId }) {
+  const [confirmingId, setConfirmingId] = useState(null)
+  const [editingId, setEditingId] = useState(null)
+  const [editForm, setEditForm] = useState(emptyRelief)
+  const [editErrors, setEditErrors] = useState({})
+
+  function startEdit(item) {
+    setConfirmingId(null)
+    setEditingId(item.id)
+    setEditErrors({})
+    setEditForm({
+      district: item.district ?? '',
+      needType: item.needType ?? NEED_TYPES[0].value,
+      peopleCount: String(item.peopleCount ?? ''),
+      description: item.description ?? '',
+    })
+  }
+
+  function changeEdit(field, value) {
+    setEditForm((current) => ({ ...current, [field]: value }))
+    setEditErrors((current) => ({ ...current, [field]: undefined }))
+  }
+
+  async function saveEdit(id) {
+    const errors = validateRelief(editForm)
+    setEditErrors(errors)
+    if (Object.keys(errors).length > 0) return
+
+    const ok = await onEdit(id, editForm)
+    if (ok) setEditingId(null)
+  }
+
   if (!items.length) {
     return <div className="empty-state"><strong>No {kind} yet</strong><span>Your submitted items will appear here.</span></div>
   }
@@ -73,10 +114,91 @@ function SubmissionList({ items, kind }) {
             <span>{item.district}</span>
             <StatusBadge status={item.status} />
           </div>
-          <h3>{kind === 'reports' ? `${item.type} report` : `${item.needType} support request`}</h3>
-          <p>{item.description}</p>
-          <small>Submitted {formatDate(item.createdAt)}</small>
-          {item.assignedTeam && <div className="schedule-note"><strong>{item.assignedTeam}</strong><span>Scheduled for {formatScheduledTime(item.scheduledTime)}</span></div>}
+
+          {editingId === item.id ? (
+            <div className="submission-edit">
+              <h3>Edit request</h3>
+              <label>District
+                <select value={editForm.district} onChange={(e) => changeEdit('district', e.target.value)}>
+                  <option value="">Choose district</option>
+                  {districts.map((d) => <option key={d}>{d}</option>)}
+                </select>
+              </label>
+              {editErrors.district && <span className="field-error">{editErrors.district}</span>}
+
+              <div className="form-row">
+                <label>What do you need?
+                  <select value={editForm.needType} onChange={(e) => changeEdit('needType', e.target.value)}>
+                    {NEED_TYPES.map((n) => <option key={n.value} value={n.value}>{n.label}</option>)}
+                  </select>
+                </label>
+                <label>People needing help
+                  <input type="number" min="1" value={editForm.peopleCount} onChange={(e) => changeEdit('peopleCount', e.target.value)} />
+                </label>
+              </div>
+              {editErrors.peopleCount && <span className="field-error">{editErrors.peopleCount}</span>}
+
+              <label>Tell us more
+                <textarea rows="4" value={editForm.description} onChange={(e) => changeEdit('description', e.target.value)} />
+              </label>
+              {editErrors.description && <span className="field-error">{editErrors.description}</span>}
+
+              <div className="submission-actions">
+                <button type="button" className="btn btn-sm btn-primary" disabled={savingId === item.id} onClick={() => saveEdit(item.id)}>
+                  {savingId === item.id ? 'Saving…' : 'Save changes'}
+                </button>
+                <button type="button" className="btn btn-sm btn-ghost" disabled={savingId === item.id} onClick={() => setEditingId(null)}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <h3>{kind === 'reports' ? `${item.type} report` : `${item.needType} support request`}</h3>
+              <p>{item.description}</p>
+              <small>Submitted {formatDate(item.createdAt)}</small>
+              {item.assignedTeam && <div className="schedule-note"><strong>{item.assignedTeam}</strong><span>Scheduled for {formatScheduledTime(item.scheduledTime)}</span></div>}
+
+              {(onEdit || onDelete) && item.status === 'pending' && (
+                <div className="submission-actions">
+                  {confirmingId === item.id ? (
+                    <>
+                      <span className="confirm-copy">Delete this request permanently?</span>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-danger"
+                        disabled={deletingId === item.id}
+                        onClick={() => onDelete(item.id)}
+                      >
+                        {deletingId === item.id ? 'Deleting…' : 'Yes, delete'}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-ghost"
+                        disabled={deletingId === item.id}
+                        onClick={() => setConfirmingId(null)}
+                      >
+                        Keep it
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      {onEdit && (
+                        <button type="button" className="btn btn-sm btn-ghost" onClick={() => startEdit(item)}>
+                          Edit request
+                        </button>
+                      )}
+                      {onDelete && (
+                        <button type="button" className="btn btn-sm btn-ghost" onClick={() => setConfirmingId(item.id)}>
+                          Delete request
+                        </button>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+            </>
+          )}
         </article>
       ))}
     </div>
@@ -94,6 +216,8 @@ export default function UserDashboard({ user }) {
   const [message, setMessage] = useState({ type: '', text: '' })
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [deletingId, setDeletingId] = useState(null)
+  const [savingId, setSavingId] = useState(null)
 
   // Live listeners, so a status change made by an admin lands here without a refresh.
   useEffect(() => {
@@ -161,6 +285,34 @@ export default function UserDashboard({ user }) {
       setMessage({ type: 'error', text: 'Your request could not be submitted. Please try again.' })
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  // Returns true so the card can close its edit form only on success.
+  async function handleEditRequest(requestId, values) {
+    setSavingId(requestId)
+    try {
+      await updateReliefRequest(requestId, values)
+      setMessage({ type: 'success', text: 'Your relief request was updated.' })
+      return true
+    } catch {
+      setMessage({ type: 'error', text: 'That request could not be updated. Please try again.' })
+      return false
+    } finally {
+      setSavingId(null)
+    }
+  }
+
+  // The live listener drops the row on its own once Firestore confirms.
+  async function handleDeleteRequest(requestId) {
+    setDeletingId(requestId)
+    try {
+      await deleteReliefRequest(requestId)
+      setMessage({ type: 'success', text: 'Your relief request was deleted.' })
+    } catch {
+      setMessage({ type: 'error', text: 'That request could not be deleted. Please try again.' })
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -235,11 +387,7 @@ export default function UserDashboard({ user }) {
               <div className="form-row">
                 <label>What do you need?
                   <select name="needType" value={reliefForm.needType} onChange={(event) => updateForm(setReliefForm, setReliefErrors, event)}>
-                    <option value="food">Food and water</option>
-                    <option value="medicine">Medicine</option>
-                    <option value="shelter">Shelter</option>
-                    <option value="rescue">Rescue support</option>
-                    <option value="other">Other</option>
+                    {NEED_TYPES.map((n) => <option key={n.value} value={n.value}>{n.label}</option>)}
                   </select>
                 </label>
                 <label>People needing help
@@ -256,7 +404,7 @@ export default function UserDashboard({ user }) {
           )}
 
           {activeView === 'reports' && (isLoading ? <p className="loading-copy">Loading your reports...</p> : <SubmissionList items={reports} kind="reports" />)}
-          {activeView === 'requests' && (isLoading ? <p className="loading-copy">Loading your relief requests...</p> : <SubmissionList items={reliefRequests} kind="requests" />)}
+          {activeView === 'requests' && (isLoading ? <p className="loading-copy">Loading your relief requests...</p> : <SubmissionList items={reliefRequests} kind="requests" onDelete={handleDeleteRequest} deletingId={deletingId} onEdit={handleEditRequest} savingId={savingId} />)}
         </main>
       </div>
     </div>

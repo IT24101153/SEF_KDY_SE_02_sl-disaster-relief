@@ -6,6 +6,7 @@ export const REPORTS = 'reports'
 export const DISASTER_AREAS = 'disasterAreas'
 export const NEWS = 'news'
 export const RELIEF_REQUESTS = 'reliefRequests'
+export const WEATHER_FORECASTS = 'weatherForecasts'
 
 export const ROLES = {
   USER: 'user',

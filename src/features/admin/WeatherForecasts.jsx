@@ -7,6 +7,7 @@ import {
   serverTimestamp,
 } from 'firebase/firestore'
 import { db } from '../../firebase.js'
+import { WEATHER_FORECASTS } from '../../lib/collections.js'
 import { SRI_LANKA_DISTRICTS } from '../../lib/districts.js'
 import { WeatherIcon } from './icons.jsx'
 
@@ -48,7 +49,7 @@ function WeatherForecasts({ forecasts }) {
 
     setSaving(true)
     try {
-      await addDoc(collection(db, 'weatherForecasts'), {
+      await addDoc(collection(db, WEATHER_FORECASTS), {
         ...form,
         forecast: form.forecast.trim(),
         createdAt: serverTimestamp(),
@@ -61,7 +62,7 @@ function WeatherForecasts({ forecasts }) {
   }
 
   async function handleDelete(id) {
-    await deleteDoc(doc(db, 'weatherForecasts', id))
+    await deleteDoc(doc(db, WEATHER_FORECASTS, id))
   }
 
   return (

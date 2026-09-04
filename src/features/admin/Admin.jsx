@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { onAuthStateChanged, signOut } from 'firebase/auth'
 import { addDoc, collection, doc, serverTimestamp, updateDoc } from 'firebase/firestore'
 import { auth, db } from '../../firebase.js'
-import { DISASTER_AREAS, REPORTS } from '../../lib/collections.js'
+import { DISASTER_AREAS, REPORTS, WEATHER_FORECASTS } from '../../lib/collections.js'
 import { useCollectionData } from '../../lib/useCollectionData.js'
 import PendingReports from './PendingReports.jsx'
 import DisasterWarnings from './DisasterWarnings.jsx'
@@ -67,7 +67,7 @@ function Dashboard({ user, onLogout }) {
     'pending',
   )
   const { data: warnings } = useCollectionData(DISASTER_AREAS)
-  const { data: forecasts } = useCollectionData('weatherForecasts')
+  const { data: forecasts } = useCollectionData(WEATHER_FORECASTS)
 
   const activeWarnings = warnings.filter((w) => w.status === 'active')
   const view = VIEWS.find((v) => v.id === activeView)

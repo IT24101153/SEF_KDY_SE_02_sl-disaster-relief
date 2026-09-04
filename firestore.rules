@@ -61,8 +61,21 @@ service cloud.firestore {
                     && request.resource.data.status == 'pending';
       allow read: if hasRole('relief_manager')
                   || (signedIn() && resource.data.requestedBy == request.auth.uid);
-      allow update: if hasRole('relief_manager');
-      allow delete: if false;
+      // The Relief Manager may change anything, including status and assignment.
+      // The owner may correct their own request only while it is still pending,
+      // and only the four descriptive fields — hasOnly() is what stops a user
+      // from setting their own status to 'scheduled' or assigning themselves a team.
+      allow update: if hasRole('relief_manager')
+                    || (signedIn()
+                        && resource.data.requestedBy == request.auth.uid
+                        && resource.data.status == 'pending'
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                             .hasOnly(['district', 'needType', 'peopleCount', 'description']));
+      // The owner may withdraw a request, but only while it is still pending —
+      // once a team and time are assigned the record belongs to the workflow.
+      allow delete: if signedIn()
+                    && resource.data.requestedBy == request.auth.uid
+                    && resource.data.status == 'pending';
     }
   }
 }

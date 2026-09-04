@@ -1,9 +1,12 @@
 import {
   addDoc,
   collection,
+  deleteDoc,
+  doc,
   onSnapshot,
   query,
   serverTimestamp,
+  updateDoc,
   where,
 } from 'firebase/firestore'
 import { db } from '../../firebase'
@@ -57,4 +60,23 @@ export function subscribeToUserReports(userId, callback) {
 
 export function subscribeToUserReliefRequests(userId, callback) {
   return subscribeNewestFirst(RELIEF_REQUESTS, 'requestedBy', userId, callback)
+}
+
+// Only pending requests are deletable — once a relief manager has assigned a
+// team and time, removing the record would strand their side of the workflow.
+// The same condition is enforced in firestore.rules.
+export function deleteReliefRequest(requestId) {
+  return deleteDoc(doc(db, RELIEF_REQUESTS, requestId))
+}
+
+// Only the four descriptive fields are writable. status, assignedTeam and
+// scheduledTime belong to the Relief Manager, and firestore.rules rejects an
+// update that touches anything outside this list.
+export function updateReliefRequest(requestId, values) {
+  return updateDoc(doc(db, RELIEF_REQUESTS, requestId), {
+    district: values.district,
+    needType: values.needType,
+    peopleCount: Number(values.peopleCount),
+    description: values.description.trim(),
+  })
 }

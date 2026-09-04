@@ -601,6 +601,81 @@
   color: var(--text-h);
 }
 
+.submission-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.confirm-copy {
+  flex: 1 1 auto;
+  min-width: 180px;
+  color: var(--text-h);
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.submission-edit {
+  display: grid;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.submission-edit h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  text-transform: none;
+}
+
+.submission-edit label {
+  display: grid;
+  gap: 6px;
+  color: var(--text-h);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.submission-edit select,
+.submission-edit input,
+.submission-edit textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-h);
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 400;
+  outline: none;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.submission-edit textarea {
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.submission-edit select:focus,
+.submission-edit input:focus,
+.submission-edit textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.submission-edit .field-error {
+  margin: -0.5rem 0 0;
+}
+
+.submission-edit .submission-actions {
+  margin-top: 0;
+  padding-top: 12px;
+}
+
 .loading-copy {
   font-size: 0.88rem;
   color: var(--text);
