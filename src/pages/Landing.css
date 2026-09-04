@@ -57,6 +57,7 @@
 
 .problem-section,
 .disaster-areas-section,
+.weather-section,
 .news-section {
   padding: 28px 32px;
   border-top: 1px solid var(--border);
@@ -72,6 +73,7 @@
 }
 
 .disaster-areas-section .placeholder,
+.weather-section .placeholder,
 .news-section .placeholder {
   display: block;
   padding: 24px;
@@ -90,4 +92,9 @@
 
 .landing-link:hover {
   text-decoration: underline;
+}
+
+.weather-section > p {
+  max-width: 60ch;
+  margin-bottom: 20px;
 }

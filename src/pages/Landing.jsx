@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import './Landing.css'
 
 const SriLankaMap = lazy(() => import('../components/SriLankaMap.jsx'))
+const WeatherPanel = lazy(() => import('../components/WeatherPanel.jsx'))
 
 function Landing() {
   return (
@@ -45,6 +46,17 @@ function Landing() {
         <Link to="/disaster-areas" className="landing-link">
           Browse all disaster areas →
         </Link>
+      </section>
+
+      <section className="weather-section">
+        <h2>Weather by District</h2>
+        <p>
+          The latest forecast published for each district. Heavy rain and
+          thunderstorms are highlighted.
+        </p>
+        <Suspense fallback={<p className="placeholder">Loading forecasts…</p>}>
+          <WeatherPanel />
+        </Suspense>
       </section>
 
       <section className="news-section">

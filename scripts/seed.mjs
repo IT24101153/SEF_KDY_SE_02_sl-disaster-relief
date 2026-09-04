@@ -66,6 +66,15 @@ const NEWS = [
   { title: 'How to request relief through this platform', category: 'news', content: 'Registered users can submit a relief request describing their district, what they need and how many people are affected. A relief coordinator will assign a team and confirm a delivery time.' },
 ]
 
+const WEATHER_FORECASTS = [
+  { district: 'Colombo', condition: 'Heavy Rain', forecast: '80-120mm expected through tonight. Expect surface flooding on low-lying roads; avoid the Wellampitiya and Kolonnawa approaches after dark.' },
+  { district: 'Gampaha', condition: 'Heavy Rain', forecast: 'Continuous rain easing by tomorrow afternoon. Canal levels remain high around Biyagama.' },
+  { district: 'Ratnapura', condition: 'Thunderstorms', forecast: 'Thundershowers with gusty winds over the hills. Slope saturation is already high — treat any new cracking as a warning sign.' },
+  { district: 'Kalutara', condition: 'Showers', forecast: 'Intermittent showers, 20-40mm. Kalu river still above its normal level but falling slowly.' },
+  { district: 'Kandy', condition: 'Cloudy', forecast: 'Overcast with brief light showers. No flood risk expected in the next 24 hours.' },
+  { district: 'Jaffna', condition: 'Sunny', forecast: 'Dry and clear across the peninsula. Daytime highs near 33C.' },
+]
+
 const REPORTS = [
   { district: 'Matara', type: 'flood', riskLevel: 'high', description: 'Nilwala river overflowing near Akuressa bridge. Around 15 houses on the riverside lane are taking on water.', status: 'pending' },
   { district: 'Kandy', type: 'landslide', riskLevel: 'medium', description: 'Cracks appeared on the slope behind the Peradeniya access road after two days of rain.', status: 'pending' },
@@ -136,6 +145,10 @@ async function main() {
     ...area,
     status: 'active',
     source: 'seed',
+    createdAt: serverTimestamp(),
+  }))
+  await seedCollection('weatherForecasts', WEATHER_FORECASTS, (item) => ({
+    ...item,
     createdAt: serverTimestamp(),
   }))
 

@@ -1,0 +1,74 @@
+.weather-grid {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 12px;
+}
+
+.weather-card {
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--ink);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  transition: border-color 0.18s ease;
+}
+
+.weather-card:hover {
+  border-color: var(--accent-border);
+}
+
+/* Heavy rain and thunderstorms carry the accent; calm conditions stay neutral. */
+.weather-card.severe {
+  border-left-color: var(--accent);
+}
+
+.weather-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.weather-card-head strong {
+  color: var(--text-h);
+  font-size: 1rem;
+}
+
+.weather-condition {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--surface-3);
+  color: var(--text);
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.weather-card.severe .weather-condition {
+  background: var(--accent);
+  color: #fff;
+}
+
+.weather-detail {
+  color: var(--text);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.weather-published {
+  margin-top: 8px;
+  color: var(--text);
+  font-size: 0.76rem;
+  opacity: 0.75;
+}
+
+@media (max-width: 560px) {
+  .weather-grid {
+    grid-template-columns: 1fr;
+  }
+}
