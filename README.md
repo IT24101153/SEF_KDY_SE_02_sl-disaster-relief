@@ -53,5 +53,10 @@ src/
   main.jsx       # App entry point
   firebase.js    # Firebase configuration and initialization
   assets/        # Images and static assets
+  features/      # Feature modules
+    admin/       # Admin module
+    user/        # User module
+    news/        # News module
+    relief/      # Relief module
 public/          # Static files served as-is
 ```
