@@ -11,6 +11,18 @@
   --shadow:
     rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
 
+  --surface: #fff;
+  --surface-2: #faf9fb;
+  --surface-3: #f4f3ec;
+  --success: #1a7f37;
+  --success-bg: rgba(26, 127, 55, 0.1);
+  --danger: #d1242f;
+  --danger-bg: rgba(209, 36, 47, 0.1);
+  --warning: #b5620a;
+  --warning-bg: rgba(240, 136, 62, 0.14);
+  --radius: 12px;
+  --radius-sm: 8px;
+
   --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
   --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
@@ -43,6 +55,16 @@
     --social-bg: rgba(47, 48, 58, 0.5);
     --shadow:
       rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+
+    --surface: #1c1d25;
+    --surface-2: #1a1b22;
+    --surface-3: #242530;
+    --success: #4ac26b;
+    --success-bg: rgba(74, 194, 107, 0.14);
+    --danger: #ff7b72;
+    --danger-bg: rgba(255, 123, 114, 0.14);
+    --warning: #e3a008;
+    --warning-bg: rgba(227, 160, 8, 0.16);
   }
 
   #social .button-icon {
@@ -76,15 +98,20 @@ input:focus-visible {
 }
 
 #root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
   min-height: 100svh;
   display: flex;
   flex-direction: column;
-  box-sizing: border-box;
+}
+
+.placeholder {
+  color: var(--text);
+  font-style: italic;
+}
+
+.route-loading {
+  padding: 64px;
+  text-align: center;
+  color: var(--text);
 }
 
 h1,

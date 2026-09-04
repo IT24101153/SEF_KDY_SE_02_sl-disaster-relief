@@ -1,10 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import {
   addDoc,
   collection,
   deleteDoc,
   doc,
-  onSnapshot,
   serverTimestamp,
   updateDoc,
 } from 'firebase/firestore'
@@ -14,6 +13,7 @@ import {
   RISK_LEVELS,
   SRI_LANKA_DISTRICTS,
 } from '../../lib/districts.js'
+import { WarningIcon } from './icons.jsx'
 
 const emptyForm = {
   district: SRI_LANKA_DISTRICTS[0].name,
@@ -22,38 +22,45 @@ const emptyForm = {
   description: '',
 }
 
-function DisasterWarnings() {
-  const [warnings, setWarnings] = useState([])
+function validate({ description }) {
+  const errors = {}
+  const trimmed = description.trim()
+  if (!trimmed) {
+    errors.description = 'A short description is required.'
+  } else if (trimmed.length < 10) {
+    errors.description = 'Add a little more detail (at least 10 characters).'
+  }
+  return errors
+}
+
+function DisasterWarnings({ warnings }) {
   const [form, setForm] = useState(emptyForm)
+  const [touched, setTouched] = useState(false)
   const [saving, setSaving] = useState(false)
 
-  useEffect(() => {
-    const unsubscribe = onSnapshot(
-      collection(db, 'disasterAreas'),
-      (snapshot) => {
-        const docs = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }))
-        docs.sort(
-          (a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0),
-        )
-        setWarnings(docs)
-      },
-    )
-    return unsubscribe
-  }, [])
+  const errors = validate(form)
+  const showError = touched && errors.description
+
+  function update(field, value) {
+    setForm((prev) => ({ ...prev, [field]: value }))
+  }
 
   async function handleSubmit(e) {
     e.preventDefault()
-    if (!form.description.trim()) return
+    setTouched(true)
+    if (Object.keys(errors).length > 0) return
 
     setSaving(true)
     try {
       await addDoc(collection(db, 'disasterAreas'), {
         ...form,
+        description: form.description.trim(),
         status: 'active',
         source: 'admin',
         createdAt: serverTimestamp(),
       })
       setForm(emptyForm)
+      setTouched(false)
     } finally {
       setSaving(false)
     }
@@ -70,84 +77,130 @@ function DisasterWarnings() {
   }
 
   return (
-    <div className="panel">
-      <h2>Disaster Warnings</h2>
-      <form className="inline-form" onSubmit={handleSubmit}>
-        <select
-          value={form.district}
-          onChange={(e) => setForm({ ...form, district: e.target.value })}
-        >
-          {SRI_LANKA_DISTRICTS.map((d) => (
-            <option key={d.name} value={d.name}>
-              {d.name}
-            </option>
-          ))}
-        </select>
-        <select
-          value={form.type}
-          onChange={(e) => setForm({ ...form, type: e.target.value })}
-        >
-          {DISASTER_TYPES.map((t) => (
-            <option key={t} value={t}>
-              {t}
-            </option>
-          ))}
-        </select>
-        <select
-          value={form.riskLevel}
-          onChange={(e) => setForm({ ...form, riskLevel: e.target.value })}
-        >
-          {RISK_LEVELS.map((r) => (
-            <option key={r} value={r}>
-              {r} risk
-            </option>
-          ))}
-        </select>
-        <input
-          type="text"
-          placeholder="Description"
-          value={form.description}
-          onChange={(e) => setForm({ ...form, description: e.target.value })}
-        />
-        <button type="submit" disabled={saving}>
-          {saving ? 'Adding…' : 'Add Warning'}
-        </button>
-      </form>
+    <>
+      <section className="card">
+        <div className="card-head">
+          <h2>Issue a warning</h2>
+          <p>Published warnings appear instantly on the public map.</p>
+        </div>
 
-      {warnings.length === 0 ? (
-        <p className="placeholder">No disaster warnings yet.</p>
-      ) : (
-        <ul className="report-list">
-          {warnings.map((w) => (
-            <li key={w.id} className="report-card">
-              <div className="report-meta">
-                <strong>{w.district}</strong>
-                <span className="badge">{w.type}</span>
-                <span className={`badge risk-${w.riskLevel}`}>
-                  {w.riskLevel} risk
-                </span>
-                <span className={`badge status-${w.status}`}>
-                  {w.status}
-                </span>
-              </div>
-              <p>{w.description}</p>
-              <div className="report-actions">
-                <button type="button" onClick={() => toggleStatus(w)}>
-                  {w.status === 'active' ? 'Mark Resolved' : 'Reactivate'}
-                </button>
-                <button
-                  type="button"
-                  className="reject"
-                  onClick={() => handleDelete(w.id)}
-                >
-                  Delete
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+        <form className="form-grid" onSubmit={handleSubmit} noValidate>
+          <div className="field">
+            <label htmlFor="warning-district">District</label>
+            <select
+              id="warning-district"
+              value={form.district}
+              onChange={(e) => update('district', e.target.value)}
+            >
+              {SRI_LANKA_DISTRICTS.map((d) => (
+                <option key={d.name} value={d.name}>
+                  {d.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="field">
+            <label htmlFor="warning-type">Type</label>
+            <select
+              id="warning-type"
+              value={form.type}
+              onChange={(e) => update('type', e.target.value)}
+            >
+              {DISASTER_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="field">
+            <label htmlFor="warning-risk">Risk level</label>
+            <select
+              id="warning-risk"
+              value={form.riskLevel}
+              onChange={(e) => update('riskLevel', e.target.value)}
+            >
+              {RISK_LEVELS.map((r) => (
+                <option key={r} value={r}>
+                  {r}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="field field-wide">
+            <label htmlFor="warning-description">Description</label>
+            <textarea
+              id="warning-description"
+              rows="3"
+              value={form.description}
+              onChange={(e) => update('description', e.target.value)}
+              onBlur={() => setTouched(true)}
+              className={showError ? 'invalid' : ''}
+              placeholder="What is happening, and what should residents do?"
+              aria-invalid={Boolean(showError)}
+            />
+            {showError && (
+              <span className="field-error">{errors.description}</span>
+            )}
+          </div>
+
+          <div className="form-actions">
+            <button type="submit" className="btn btn-primary" disabled={saving}>
+              {saving ? 'Publishing…' : 'Publish warning'}
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <section className="card">
+        <div className="card-head">
+          <h2>All warnings</h2>
+          <p>{warnings.length} total</p>
+        </div>
+
+        {warnings.length === 0 ? (
+          <div className="empty-state">
+            <WarningIcon size={22} />
+            <p>No disaster warnings published yet.</p>
+          </div>
+        ) : (
+          <ul className="list">
+            {warnings.map((w) => (
+              <li key={w.id} className="list-item">
+                <div className="list-item-head">
+                  <strong>{w.district}</strong>
+                  <span className="badge">{w.type}</span>
+                  <span className={`badge risk-${w.riskLevel}`}>
+                    {w.riskLevel} risk
+                  </span>
+                  <span className={`badge status-${w.status}`}>{w.status}</span>
+                </div>
+                <p className="list-item-body">{w.description}</p>
+                <div className="list-item-actions">
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-ghost"
+                    onClick={() => toggleStatus(w)}
+                  >
+                    {w.status === 'active' ? 'Mark resolved' : 'Reactivate'}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-danger"
+                    onClick={() => handleDelete(w.id)}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </>
   )
 }
 

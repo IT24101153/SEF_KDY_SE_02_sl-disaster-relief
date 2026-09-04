@@ -8,7 +8,7 @@ const ReliefManagerPage = lazy(() => import('./features/relief/ReliefManagerPage
 
 function App() {
   return (
-    <Suspense fallback={<p style={{ padding: 48 }}>Loading…</p>}>
+    <Suspense fallback={<p className="route-loading">Loading…</p>}>
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/admin/login" element={<AdminLogin />} />

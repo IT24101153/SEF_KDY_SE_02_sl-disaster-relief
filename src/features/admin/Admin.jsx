@@ -1,51 +1,75 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { onAuthStateChanged, signOut } from 'firebase/auth'
-import {
-  collection,
-  query,
-  where,
-  onSnapshot,
-  doc,
-  updateDoc,
-} from 'firebase/firestore'
+import { doc, updateDoc } from 'firebase/firestore'
 import { auth, db } from '../../firebase.js'
+import { useCollectionData } from '../../lib/useCollectionData.js'
+import PendingReports from './PendingReports.jsx'
 import DisasterWarnings from './DisasterWarnings.jsx'
 import WeatherForecasts from './WeatherForecasts.jsx'
+import {
+  LogoutIcon,
+  ReportIcon,
+  ShieldIcon,
+  WarningIcon,
+  WeatherIcon,
+} from './icons.jsx'
 import './admin.css'
+
+const VIEWS = [
+  {
+    id: 'reports',
+    label: 'Pending Reports',
+    description: 'Review community-submitted reports before they go public.',
+    Icon: ReportIcon,
+  },
+  {
+    id: 'warnings',
+    label: 'Disaster Warnings',
+    description: 'Publish and manage active warnings by district.',
+    Icon: WarningIcon,
+  },
+  {
+    id: 'weather',
+    label: 'Weather Forecasts',
+    description: 'Share district forecasts with the public feed.',
+    Icon: WeatherIcon,
+  },
+]
 
 function AdminDashboard() {
   const [user, setUser] = useState(undefined)
-  const [reports, setReports] = useState([])
-  const [reportsLoading, setReportsLoading] = useState(true)
   const navigate = useNavigate()
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    return onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser)
-      if (!currentUser) {
-        navigate('/admin/login', { replace: true })
-      }
+      if (!currentUser) navigate('/admin/login', { replace: true })
     })
-    return unsubscribe
   }, [navigate])
 
-  useEffect(() => {
-    if (!user) return
-    const pendingReports = query(
-      collection(db, 'reports'),
-      where('status', '==', 'pending'),
-    )
-    const unsubscribe = onSnapshot(pendingReports, (snapshot) => {
-      const docs = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }))
-      docs.sort(
-        (a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0),
-      )
-      setReports(docs)
-      setReportsLoading(false)
-    })
-    return unsubscribe
-  }, [user])
+  async function handleLogout() {
+    await signOut(auth)
+    navigate('/admin/login', { replace: true })
+  }
+
+  if (!user) return <p className="route-loading">Checking session…</p>
+
+  return <Dashboard user={user} onLogout={handleLogout} />
+}
+
+function Dashboard({ user, onLogout }) {
+  const [activeView, setActiveView] = useState('reports')
+  const { data: reports, loading: reportsLoading } = useCollectionData(
+    'reports',
+    'status',
+    'pending',
+  )
+  const { data: warnings } = useCollectionData('disasterAreas')
+  const { data: forecasts } = useCollectionData('weatherForecasts')
+
+  const activeWarnings = warnings.filter((w) => w.status === 'active')
+  const view = VIEWS.find((v) => v.id === activeView)
 
   async function handleReview(reportId, status) {
     await updateDoc(doc(db, 'reports', reportId), {
@@ -54,61 +78,84 @@ function AdminDashboard() {
     })
   }
 
-  async function handleLogout() {
-    await signOut(auth)
-    navigate('/admin/login')
-  }
-
-  if (!user) return null
+  const stats = [
+    { label: 'Pending reports', value: reports.length },
+    { label: 'Active warnings', value: activeWarnings.length },
+    { label: 'Published forecasts', value: forecasts.length },
+  ]
 
   return (
-    <div className="admin-dashboard">
-      <header className="admin-header">
-        <h1>Disaster Admin Dashboard</h1>
-        <button type="button" onClick={handleLogout}>
-          Log Out
-        </button>
-      </header>
+    <div className="admin-shell">
+      <aside className="sidebar">
+        <div className="sidebar-brand">
+          <span className="sidebar-brand-mark">
+            <ShieldIcon size={18} />
+          </span>
+          <span className="sidebar-brand-text">
+            <strong>Relief Connect</strong>
+            <small>Admin console</small>
+          </span>
+        </div>
 
-      <section className="panel">
-        <h2>Pending Reports</h2>
-        {reportsLoading ? (
-          <p className="placeholder">Loading reports…</p>
-        ) : reports.length === 0 ? (
-          <p className="placeholder">No pending reports.</p>
-        ) : (
-          <ul className="report-list">
-            {reports.map((report) => (
-              <li key={report.id} className="report-card">
-                <div className="report-meta">
-                  <strong>{report.district}</strong>
-                  <span className="badge">{report.type}</span>
-                </div>
-                <p>{report.description}</p>
-                <div className="report-actions">
-                  <button
-                    type="button"
-                    className="approve"
-                    onClick={() => handleReview(report.id, 'approved')}
-                  >
-                    Approve
-                  </button>
-                  <button
-                    type="button"
-                    className="reject"
-                    onClick={() => handleReview(report.id, 'rejected')}
-                  >
-                    Reject
-                  </button>
-                </div>
-              </li>
+        <nav className="sidebar-nav" aria-label="Dashboard sections">
+          {VIEWS.map(({ id, label, Icon }) => (
+            <button
+              key={id}
+              type="button"
+              className={`nav-item${activeView === id ? ' active' : ''}`}
+              onClick={() => setActiveView(id)}
+              aria-current={activeView === id ? 'page' : undefined}
+            >
+              <Icon size={18} />
+              {label}
+            </button>
+          ))}
+        </nav>
+
+        <div className="sidebar-footer">
+          <div className="sidebar-user">
+            <span className="avatar" aria-hidden="true">
+              {user.email?.[0]?.toUpperCase() ?? 'A'}
+            </span>
+            <span className="sidebar-user-meta">
+              <strong>Administrator</strong>
+              <small title={user.email}>{user.email}</small>
+            </span>
+          </div>
+          <button type="button" className="btn btn-ghost btn-block" onClick={onLogout}>
+            <LogoutIcon size={16} />
+            Log out
+          </button>
+        </div>
+      </aside>
+
+      <main className="admin-main">
+        <header className="main-topbar">
+          <h1>{view.label}</h1>
+          <p>{view.description}</p>
+        </header>
+
+        <div className="main-content">
+          <div className="stat-grid">
+            {stats.map((stat) => (
+              <div key={stat.label} className="stat-card">
+                <span className="stat-value">{stat.value}</span>
+                <span className="stat-label">{stat.label}</span>
+              </div>
             ))}
-          </ul>
-        )}
-      </section>
+          </div>
 
-      <DisasterWarnings />
-      <WeatherForecasts />
+          {activeView === 'reports' && (
+            <PendingReports
+              reports={reports}
+              loading={reportsLoading}
+              onReview={handleReview}
+            />
+          )}
+          {activeView === 'warnings' && <DisasterWarnings warnings={warnings} />}
+          {activeView === 'weather' && <WeatherForecasts forecasts={forecasts} />}
+        </div>
+      </main>
     </div>
   )
 }

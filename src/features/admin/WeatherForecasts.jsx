@@ -1,14 +1,14 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import {
   addDoc,
   collection,
   deleteDoc,
   doc,
-  onSnapshot,
   serverTimestamp,
 } from 'firebase/firestore'
 import { db } from '../../firebase.js'
 import { SRI_LANKA_DISTRICTS } from '../../lib/districts.js'
+import { WeatherIcon } from './icons.jsx'
 
 const CONDITIONS = ['Sunny', 'Cloudy', 'Showers', 'Heavy Rain', 'Thunderstorms']
 
@@ -18,36 +18,43 @@ const emptyForm = {
   forecast: '',
 }
 
-function WeatherForecasts() {
-  const [forecasts, setForecasts] = useState([])
+function validate({ forecast }) {
+  const errors = {}
+  const trimmed = forecast.trim()
+  if (!trimmed) {
+    errors.forecast = 'Forecast details are required.'
+  } else if (trimmed.length < 10) {
+    errors.forecast = 'Add a little more detail (at least 10 characters).'
+  }
+  return errors
+}
+
+function WeatherForecasts({ forecasts }) {
   const [form, setForm] = useState(emptyForm)
+  const [touched, setTouched] = useState(false)
   const [saving, setSaving] = useState(false)
 
-  useEffect(() => {
-    const unsubscribe = onSnapshot(
-      collection(db, 'weatherForecasts'),
-      (snapshot) => {
-        const docs = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }))
-        docs.sort(
-          (a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0),
-        )
-        setForecasts(docs)
-      },
-    )
-    return unsubscribe
-  }, [])
+  const errors = validate(form)
+  const showError = touched && errors.forecast
+
+  function update(field, value) {
+    setForm((prev) => ({ ...prev, [field]: value }))
+  }
 
   async function handleSubmit(e) {
     e.preventDefault()
-    if (!form.forecast.trim()) return
+    setTouched(true)
+    if (Object.keys(errors).length > 0) return
 
     setSaving(true)
     try {
       await addDoc(collection(db, 'weatherForecasts'), {
         ...form,
+        forecast: form.forecast.trim(),
         createdAt: serverTimestamp(),
       })
       setForm(emptyForm)
+      setTouched(false)
     } finally {
       setSaving(false)
     }
@@ -58,65 +65,102 @@ function WeatherForecasts() {
   }
 
   return (
-    <div className="panel">
-      <h2>Weather Forecasts</h2>
-      <form className="inline-form" onSubmit={handleSubmit}>
-        <select
-          value={form.district}
-          onChange={(e) => setForm({ ...form, district: e.target.value })}
-        >
-          {SRI_LANKA_DISTRICTS.map((d) => (
-            <option key={d.name} value={d.name}>
-              {d.name}
-            </option>
-          ))}
-        </select>
-        <select
-          value={form.condition}
-          onChange={(e) => setForm({ ...form, condition: e.target.value })}
-        >
-          {CONDITIONS.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
-        </select>
-        <input
-          type="text"
-          placeholder="Forecast details"
-          value={form.forecast}
-          onChange={(e) => setForm({ ...form, forecast: e.target.value })}
-        />
-        <button type="submit" disabled={saving}>
-          {saving ? 'Adding…' : 'Add Forecast'}
-        </button>
-      </form>
+    <>
+      <section className="card">
+        <div className="card-head">
+          <h2>Publish a forecast</h2>
+          <p>Give residents a clear picture of conditions in their district.</p>
+        </div>
 
-      {forecasts.length === 0 ? (
-        <p className="placeholder">No weather forecasts yet.</p>
-      ) : (
-        <ul className="report-list">
-          {forecasts.map((f) => (
-            <li key={f.id} className="report-card">
-              <div className="report-meta">
-                <strong>{f.district}</strong>
-                <span className="badge">{f.condition}</span>
-              </div>
-              <p>{f.forecast}</p>
-              <div className="report-actions">
-                <button
-                  type="button"
-                  className="reject"
-                  onClick={() => handleDelete(f.id)}
-                >
-                  Delete
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+        <form className="form-grid" onSubmit={handleSubmit} noValidate>
+          <div className="field">
+            <label htmlFor="forecast-district">District</label>
+            <select
+              id="forecast-district"
+              value={form.district}
+              onChange={(e) => update('district', e.target.value)}
+            >
+              {SRI_LANKA_DISTRICTS.map((d) => (
+                <option key={d.name} value={d.name}>
+                  {d.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="field">
+            <label htmlFor="forecast-condition">Condition</label>
+            <select
+              id="forecast-condition"
+              value={form.condition}
+              onChange={(e) => update('condition', e.target.value)}
+            >
+              {CONDITIONS.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="field field-wide">
+            <label htmlFor="forecast-details">Forecast details</label>
+            <textarea
+              id="forecast-details"
+              rows="3"
+              value={form.forecast}
+              onChange={(e) => update('forecast', e.target.value)}
+              onBlur={() => setTouched(true)}
+              className={showError ? 'invalid' : ''}
+              placeholder="Expected rainfall, timing, and any precautions."
+              aria-invalid={Boolean(showError)}
+            />
+            {showError && <span className="field-error">{errors.forecast}</span>}
+          </div>
+
+          <div className="form-actions">
+            <button type="submit" className="btn btn-primary" disabled={saving}>
+              {saving ? 'Publishing…' : 'Publish forecast'}
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <section className="card">
+        <div className="card-head">
+          <h2>Published forecasts</h2>
+          <p>{forecasts.length} total</p>
+        </div>
+
+        {forecasts.length === 0 ? (
+          <div className="empty-state">
+            <WeatherIcon size={22} />
+            <p>No weather forecasts published yet.</p>
+          </div>
+        ) : (
+          <ul className="list">
+            {forecasts.map((f) => (
+              <li key={f.id} className="list-item">
+                <div className="list-item-head">
+                  <strong>{f.district}</strong>
+                  <span className="badge">{f.condition}</span>
+                </div>
+                <p className="list-item-body">{f.forecast}</p>
+                <div className="list-item-actions">
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-danger"
+                    onClick={() => handleDelete(f.id)}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </>
   )
 }
 
