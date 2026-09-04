@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { onAuthStateChanged, signInWithEmailAndPassword } from 'firebase/auth'
-import { auth } from '../../firebase.js'
+import { signInWithEmailAndPassword } from 'firebase/auth'
+import { doc, getDoc } from 'firebase/firestore'
+import { auth, db } from '../../firebase.js'
 import './admin.css'
 
 const ERROR_MESSAGES = {
@@ -20,16 +21,7 @@ function AdminLogin() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [checkingSession, setCheckingSession] = useState(true)
   const navigate = useNavigate()
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setCheckingSession(false)
-      if (user) navigate('/admin', { replace: true })
-    })
-    return unsubscribe
-  }, [navigate])
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -42,8 +34,9 @@ function AdminLogin() {
 
     setLoading(true)
     try {
-      await signInWithEmailAndPassword(auth, email, password)
-      navigate('/admin')
+      const credentials = await signInWithEmailAndPassword(auth, email, password)
+      const profile = await getDoc(doc(db, 'Users', credentials.user.uid))
+      navigate(profile.data()?.role === 'relief_manager' ? '/relief-manager' : '/admin')
     } catch (err) {
       setError(
         ERROR_MESSAGES[err.code] ?? 'Something went wrong. Please try again.',
@@ -52,8 +45,6 @@ function AdminLogin() {
       setLoading(false)
     }
   }
-
-  if (checkingSession) return null
 
   return (
     <div className="admin-auth">
